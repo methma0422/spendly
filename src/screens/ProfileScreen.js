@@ -199,7 +199,8 @@ export default function ProfileScreen() {
     <SafeAreaView style={styles.container}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 80}
       >
         <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
           {/* Profile Card Header */}
@@ -333,7 +334,7 @@ const styles = StyleSheet.create({
   },
   scrollContainer: {
     padding: theme.spacing.lg,
-    paddingBottom: theme.spacing.xxl,
+    paddingBottom: 120,
   },
   profileHeader: {
     alignItems: 'center',
