@@ -1,10 +1,40 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Animated } from 'react-native';
 import { theme } from '../utils/theme';
-import CategoryIcon from './CategoryIcon';
+import CategoryIcon, { getCategoryIconInfo } from './CategoryIcon';
 
 export default function ExpenseCard({ expense, onPress }) {
   const { title, amount, category, date } = expense;
+
+  // Animation values
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, []);
+
+  const handlePressIn = () => {
+    Animated.spring(scaleValue, {
+      toValue: 0.97,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 40,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 8,
+      tension: 40,
+    }).start();
+  };
 
   // Format Date (e.g., "Oct 12, 2026")
   const formatDate = (dateString) => {
@@ -24,33 +54,46 @@ export default function ExpenseCard({ expense, onPress }) {
     }).format(num);
   };
 
+  const iconInfo = getCategoryIconInfo(category);
+
   return (
-    <TouchableOpacity 
-      style={styles.card} 
-      onPress={onPress}
-      activeOpacity={0.75}
-    >
-      <View style={styles.leftContainer}>
-        <CategoryIcon category={category} size={44} iconSize={22} style={styles.iconBadge} />
-        
-        <View style={styles.textContainer}>
-          <Text style={styles.title} numberOfLines={1}>
-            {title}
-          </Text>
-          <View style={styles.subTextContainer}>
-            <Text style={styles.category}>{category}</Text>
-            <Text style={styles.dot}>•</Text>
-            <Text style={styles.date}>{formatDate(date)}</Text>
+    <Animated.View style={{ opacity: fadeAnim, transform: [{ scale: scaleValue }] }}>
+      <TouchableOpacity 
+        style={[
+          styles.card,
+          { 
+            borderLeftColor: iconInfo.color,
+            borderColor: `${iconInfo.color}15`, // subtle tinted border
+            shadowColor: iconInfo.color,
+          }
+        ]} 
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        activeOpacity={0.85}
+      >
+        <View style={styles.leftContainer}>
+          <CategoryIcon category={category} size={44} iconSize={22} style={styles.iconBadge} />
+          
+          <View style={styles.textContainer}>
+            <Text style={styles.title} numberOfLines={1}>
+              {title}
+            </Text>
+            <View style={styles.subTextContainer}>
+              <Text style={styles.category}>{category}</Text>
+              <Text style={styles.dot}>•</Text>
+              <Text style={styles.date}>{formatDate(date)}</Text>
+            </View>
           </View>
         </View>
-      </View>
-      
-      <View style={styles.rightContainer}>
-        <Text style={styles.amount}>
-          -{formatAmount(amount)}
-        </Text>
-      </View>
-    </TouchableOpacity>
+        
+        <View style={styles.rightContainer}>
+          <Text style={styles.amount}>
+            -{formatAmount(amount)}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -64,7 +107,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     borderWidth: 1,
-    borderColor: theme.colors.cardBorder,
+    borderLeftWidth: 4.5, // Colored edge strip
+    elevation: 2, // dynamic shadow
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
   leftContainer: {
     flexDirection: 'row',

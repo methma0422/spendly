@@ -8,19 +8,35 @@ import {
   Alert, 
   KeyboardAvoidingView, 
   Platform,
-  TouchableOpacity
+  TouchableOpacity,
+  LayoutAnimation,
+  UIManager
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../utils/theme';
 import CustomInput from '../components/CustomInput';
 import CustomButton from '../components/CustomButton';
 
+if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
+  UIManager.setLayoutAnimationEnabledExperimental(true);
+}
+
 export default function ProfileScreen() {
-  const { user, expenses, logout, updateProfile, changePassword } = useAuth();
+  const { user, expenses, logout, updateProfile, changePassword, showDialog } = useAuth();
   
   // Section toggle states
   const [showEditProfile, setShowEditProfile] = useState(false);
   const [showChangePassword, setShowChangePassword] = useState(false);
+
+  const toggleEditProfile = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowEditProfile(!showEditProfile);
+  };
+
+  const toggleChangePassword = () => {
+    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    setShowChangePassword(!showChangePassword);
+  };
 
   // Edit Profile form state
   const [name, setName] = useState(user?.name || '');
@@ -72,10 +88,19 @@ export default function ProfileScreen() {
     setEditLoading(true);
     try {
       await updateProfile(name, email);
-      Alert.alert('Success', 'Profile updated successfully!');
+      showDialog({
+        title: 'Success',
+        message: 'Profile updated successfully!',
+        type: 'success',
+      });
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setShowEditProfile(false);
     } catch (e) {
-      Alert.alert('Update Failed', e.message || 'Something went wrong.');
+      showDialog({
+        title: 'Update Failed',
+        message: e.message || 'Something went wrong.',
+        type: 'error',
+      });
     } finally {
       setEditLoading(false);
     }
@@ -119,13 +144,22 @@ export default function ProfileScreen() {
     setPwLoading(true);
     try {
       await changePassword(currentPassword, newPassword);
-      Alert.alert('Success', 'Password updated successfully!');
+      showDialog({
+        title: 'Success',
+        message: 'Password updated successfully!',
+        type: 'success',
+      });
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
       setShowChangePassword(false);
     } catch (e) {
-      Alert.alert('Change Failed', e.message || 'Something went wrong.');
+      showDialog({
+        title: 'Change Failed',
+        message: e.message || 'Something went wrong.',
+        type: 'error',
+      });
     } finally {
       setPwLoading(false);
     }
@@ -133,10 +167,11 @@ export default function ProfileScreen() {
 
   // Handle Logout
   const handleLogout = () => {
-    Alert.alert(
-      'Sign Out',
-      'Are you sure you want to log out of spendly?',
-      [
+    showDialog({
+      title: 'Sign Out',
+      message: 'Are you sure you want to log out of spendly?',
+      type: 'confirm',
+      buttons: [
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Sign Out', 
@@ -146,7 +181,7 @@ export default function ProfileScreen() {
           }
         }
       ]
-    );
+    });
   };
 
   // Generate avatar initials
@@ -194,7 +229,7 @@ export default function ProfileScreen() {
           <View style={styles.card}>
             <TouchableOpacity 
               style={styles.cardHeader} 
-              onPress={() => setShowEditProfile(!showEditProfile)}
+              onPress={toggleEditProfile}
               activeOpacity={0.7}
             >
               <Text style={styles.cardTitle}>Edit Profile Info</Text>
@@ -232,7 +267,7 @@ export default function ProfileScreen() {
           <View style={styles.card}>
             <TouchableOpacity 
               style={styles.cardHeader} 
-              onPress={() => setShowChangePassword(!showChangePassword)}
+              onPress={toggleChangePassword}
               activeOpacity={0.7}
             >
               <Text style={styles.cardTitle}>Security & Password</Text>

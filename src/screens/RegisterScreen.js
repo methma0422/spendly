@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
@@ -7,7 +7,9 @@ import {
   KeyboardAvoidingView, 
   Platform, 
   TouchableOpacity,
-  Alert 
+  Alert,
+  Animated,
+  Easing 
 } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../utils/theme';
@@ -16,7 +18,7 @@ import CustomButton from '../components/CustomButton';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function RegisterScreen({ navigation }) {
-  const { register } = useAuth();
+  const { register, showDialog } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -28,6 +30,28 @@ export default function RegisterScreen({ navigation }) {
   const hasMinLength = password.length >= 6;
   const hasUppercase = /[A-Z]/.test(password);
   const hasSpecialChar = /[^A-Za-z0-9]/.test(password);
+
+  // Background Orb Breathing Animation
+  const glowAnim = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(glowAnim, {
+          toValue: 1.15,
+          duration: 5000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        Animated.timing(glowAnim, {
+          toValue: 1.0,
+          duration: 5000,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+      ])
+    ).start();
+  }, []);
 
   // Validate form fields
   const validateForm = () => {
@@ -86,19 +110,42 @@ export default function RegisterScreen({ navigation }) {
     setLoading(true);
     try {
       await register(name, email, password);
-      Alert.alert('Success', 'Account created successfully!');
+      showDialog({
+        title: 'Success',
+        message: 'Account created successfully!',
+        type: 'success',
+      });
     } catch (error) {
-      Alert.alert('Registration Failed', error.message || 'Something went wrong.');
+      showDialog({
+        title: 'Registration Failed',
+        message: error.message || 'Something went wrong.',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.keyboardView}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
+    <View style={styles.container}>
+      {/* Background Pulsing Neon Orbs */}
+      <Animated.View style={[
+        styles.glowOrb1, 
+        { 
+          transform: [{ scale: glowAnim }] 
+        }
+      ]} />
+      <Animated.View style={[
+        styles.glowOrb2, 
+        { 
+          transform: [{ scale: glowAnim }] 
+        }
+      ]} />
+
+      <KeyboardAvoidingView 
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
         <View style={styles.headerContainer}>
           <Text style={styles.title}>Create Account</Text>
@@ -108,7 +155,7 @@ export default function RegisterScreen({ navigation }) {
         <View style={styles.formContainer}>
           <CustomInput
             label="Full Name"
-            placeholder="John Doe"
+            placeholder="Saman Perera"
             value={name}
             onChangeText={(text) => {
               setName(text);
@@ -207,14 +254,39 @@ export default function RegisterScreen({ navigation }) {
           </TouchableOpacity>
         </View>
       </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  keyboardView: {
+  container: {
     flex: 1,
     backgroundColor: theme.colors.background,
+    overflow: 'hidden',
+  },
+  keyboardView: {
+    flex: 1,
+  },
+  glowOrb1: {
+    position: 'absolute',
+    top: -80,
+    left: -80,
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    backgroundColor: 'rgba(0, 255, 241, 0.08)',
+    zIndex: -1,
+  },
+  glowOrb2: {
+    position: 'absolute',
+    bottom: -100,
+    right: -80,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    backgroundColor: 'rgba(0, 163, 154, 0.06)',
+    zIndex: -1,
   },
   scrollContainer: {
     flexGrow: 1,

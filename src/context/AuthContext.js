@@ -6,19 +6,25 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasSeenOnboarding, setHasSeenOnboarding] = useState(false);
   const [expenses, setExpenses] = useState([]);
+  const [hasShownSplash, setHasShownSplash] = useState(false);
+  const [dialogConfig, setDialogConfig] = useState(null);
 
-  // Check for active session on app mount
+  // Check for active session and onboarding flag on app mount
   useEffect(() => {
     const bootstrapAsync = async () => {
       try {
+        const seen = await storage.getHasSeenOnboarding();
+        setHasSeenOnboarding(seen);
+
         const currentUser = await storage.getCurrentUser();
         if (currentUser) {
           setUser(currentUser);
           await loadUserExpenses(currentUser.email);
         }
       } catch (e) {
-        console.error('Failed to restore session', e);
+        console.error('Failed to restore session or onboarding', e);
       } finally {
         setIsLoading(false);
       }
@@ -143,11 +149,24 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const completeOnboarding = async () => {
+    try {
+      await storage.setHasSeenOnboarding(true);
+      setHasSeenOnboarding(true);
+    } catch (e) {
+      console.error('Failed to complete onboarding', e);
+    }
+  };
+
   return (
     <AuthContext.Provider
       value={{
         user,
         isLoading,
+        hasSeenOnboarding,
+        completeOnboarding,
+        hasShownSplash,
+        setHasShownSplash,
         expenses,
         login,
         register,
@@ -157,6 +176,9 @@ export const AuthProvider = ({ children }) => {
         addExpenseItem,
         updateExpenseItem,
         deleteExpenseItem,
+        dialogConfig,
+        showDialog: (config) => setDialogConfig(config),
+        hideDialog: () => setDialogConfig(null),
         refreshExpenses: () => user && loadUserExpenses(user.email)
       }}
     >

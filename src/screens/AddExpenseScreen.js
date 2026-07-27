@@ -18,7 +18,7 @@ import CategoryIcon from '../components/CategoryIcon';
 const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Education', 'Entertainment', 'Other'];
 
 export default function AddExpenseScreen({ navigation }) {
-  const { addExpenseItem } = useAuth();
+  const { addExpenseItem, showDialog } = useAuth();
   
   // Get today's date formatted as YYYY-MM-DD
   const getTodayDateString = () => {
@@ -93,11 +93,20 @@ export default function AddExpenseScreen({ navigation }) {
     setLoading(true);
     try {
       await addExpenseItem(title, amount, category, date, description);
-      Alert.alert('Success', 'Expense recorded successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      showDialog({
+        title: 'Success',
+        message: 'Expense recorded successfully!',
+        type: 'success',
+        buttons: [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]
+      });
     } catch (e) {
-      Alert.alert('Error', 'Failed to save expense. Please try again.');
+      showDialog({
+        title: 'Error',
+        message: 'Failed to save expense. Please try again.',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }

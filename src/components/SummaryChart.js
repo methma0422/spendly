@@ -1,7 +1,40 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useRef, useEffect } from 'react';
+import { View, Text, StyleSheet, Animated } from 'react-native';
 import { theme } from '../utils/theme';
 import { getCategoryIconInfo } from './CategoryIcon';
+
+// Reusable Animated Progress Bar Component
+function AnimatedProgressBar({ percentage, color }) {
+  const widthAnim = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    Animated.spring(widthAnim, {
+      toValue: percentage,
+      friction: 8,
+      tension: 30,
+      useNativeDriver: false, // layout/width changes are not supported on native driver but run smoothly on modern phones
+    }).start();
+  }, [percentage]);
+
+  const widthPercent = widthAnim.interpolate({
+    inputRange: [0, 100],
+    outputRange: ['0%', '100%'],
+  });
+
+  return (
+    <View style={styles.progressTrack}>
+      <Animated.View 
+        style={[
+          styles.progressFill, 
+          { 
+            backgroundColor: color, 
+            width: widthPercent 
+          }
+        ]} 
+      />
+    </View>
+  );
+}
 
 export default function SummaryChart({ expenses }) {
   // If there are no expenses, render a clean empty state
@@ -60,18 +93,8 @@ export default function SummaryChart({ expenses }) {
             </View>
           </View>
           
-          {/* Progress Bar */}
-          <View style={styles.progressTrack}>
-            <View 
-              style={[
-                styles.progressFill, 
-                { 
-                  backgroundColor: item.iconInfo.color, 
-                  width: `${item.percentage}%` 
-                }
-              ]} 
-            />
-          </View>
+          {/* Progress Bar (Animated) */}
+          <AnimatedProgressBar percentage={item.percentage} color={item.iconInfo.color} />
         </View>
       ))}
     </View>

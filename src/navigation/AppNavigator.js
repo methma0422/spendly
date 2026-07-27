@@ -16,6 +16,7 @@ import ExpenseDetailsScreen from '../screens/ExpenseDetailsScreen';
 import AddExpenseScreen from '../screens/AddExpenseScreen';
 import EditExpenseScreen from '../screens/EditExpenseScreen';
 import ProfileScreen from '../screens/ProfileScreen';
+import OnboardingScreen from '../screens/OnboardingScreen';
 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -72,7 +73,10 @@ function MainTabNavigator() {
       <Tab.Screen 
         name="Dashboard" 
         component={DashboardScreen} 
-        options={{ title: 'Dashboard' }} 
+        options={{ 
+          title: 'Home',
+          headerShown: false,
+        }} 
       />
       <Tab.Screen 
         name="Expenses" 
@@ -90,7 +94,7 @@ function MainTabNavigator() {
 
 // App Root Navigator
 export default function AppNavigator() {
-  const { user, isLoading } = useAuth();
+  const { user, isLoading, hasSeenOnboarding, hasShownSplash } = useAuth();
 
   if (isLoading) {
     return (
@@ -120,11 +124,20 @@ export default function AppNavigator() {
       {user === null ? (
         // Auth Stack
         <>
-          <Stack.Screen 
-            name="Splash" 
-            component={SplashScreen} 
-            options={{ headerShown: false }} 
-          />
+          {!hasShownSplash && (
+            <Stack.Screen 
+              name="Splash" 
+              component={SplashScreen} 
+              options={{ headerShown: false }} 
+            />
+          )}
+          {!hasSeenOnboarding && (
+            <Stack.Screen 
+              name="Onboarding" 
+              component={OnboardingScreen} 
+              options={{ headerShown: false }} 
+            />
+          )}
           <Stack.Screen 
             name="Login" 
             component={LoginScreen} 

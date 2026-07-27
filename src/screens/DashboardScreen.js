@@ -1,13 +1,15 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   ScrollView, 
-  SafeAreaView, 
   TouchableOpacity, 
-  StatusBar 
+  StatusBar,
+  Animated,
+  Easing 
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { theme } from '../utils/theme';
@@ -16,6 +18,99 @@ import SummaryChart from '../components/SummaryChart';
 
 export default function DashboardScreen({ navigation }) {
   const { user, expenses } = useAuth();
+  const insets = useSafeAreaInsets();
+
+  // Animation values
+  const fadeGreeting = useRef(new Animated.Value(0)).current;
+  const fadeCard = useRef(new Animated.Value(0)).current;
+  const yCard = useRef(new Animated.Value(30)).current;
+  const fadeChart = useRef(new Animated.Value(0)).current;
+  const yChart = useRef(new Animated.Value(30)).current;
+  const fadeList = useRef(new Animated.Value(0)).current;
+  const yList = useRef(new Animated.Value(30)).current;
+  const scaleFab = useRef(new Animated.Value(0)).current;
+
+  // Pulse animation for FAB
+  const pulseAnim = useRef(new Animated.Value(1)).current;
+
+  // Marquee Ticker Loop (Dynamic width measurement)
+  const [tickerWidth, setTickerWidth] = React.useState(0);
+  const tickerX = useRef(new Animated.Value(0)).current;
+
+  useEffect(() => {
+    // Pulse animation loops continuously
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulseAnim, {
+          toValue: 1.06,
+          duration: 1500,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulseAnim, {
+          toValue: 1.0,
+          duration: 1500,
+          easing: Easing.linear,
+          useNativeDriver: true,
+        })
+      ])
+    ).start();
+  }, []);
+
+  useEffect(() => {
+    if (tickerWidth === 0) return;
+    
+    let tickerAnimation;
+    const animateTicker = () => {
+      tickerX.setValue(0);
+      tickerAnimation = Animated.timing(tickerX, {
+        toValue: -tickerWidth,
+        duration: tickerWidth * 30, // consistent speed scaling with text length
+        easing: Easing.linear,
+        useNativeDriver: true,
+      });
+      tickerAnimation.start(({ finished }) => {
+        if (finished) {
+          animateTicker();
+        }
+      });
+    };
+    
+    animateTicker();
+    
+    return () => {
+      if (tickerAnimation) tickerAnimation.stop();
+    };
+  }, [tickerWidth]);
+
+  useEffect(() => {
+    // Staggered premium entrance animations
+    Animated.stagger(120, [
+      Animated.timing(fadeGreeting, {
+        toValue: 1,
+        duration: 500,
+        useNativeDriver: true,
+      }),
+      Animated.parallel([
+        Animated.timing(fadeCard, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.spring(yCard, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeChart, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.spring(yChart, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+      ]),
+      Animated.parallel([
+        Animated.timing(fadeList, { toValue: 1, duration: 500, useNativeDriver: true }),
+        Animated.spring(yList, { toValue: 0, friction: 8, tension: 40, useNativeDriver: true }),
+      ]),
+      Animated.spring(scaleFab, {
+        toValue: 1,
+        friction: 6,
+        tension: 40,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
 
   // Helper: Format Currency
   const formatCurrency = (amount) => {
@@ -48,11 +143,12 @@ export default function DashboardScreen({ navigation }) {
   const recentTransactions = expenses.slice(0, 5);
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={[styles.container, { paddingTop: insets.top }]}>
       <StatusBar barStyle="light-content" backgroundColor={theme.colors.background} />
       <ScrollView contentContainerStyle={styles.scrollContainer} showsVerticalScrollIndicator={false}>
+        
         {/* Header Greeting */}
-        <View style={styles.header}>
+        <Animated.View style={[styles.header, { opacity: fadeGreeting }]}>
           <View>
             <Text style={styles.greeting}>Welcome back,</Text>
             <Text style={styles.userName}>{user?.name || 'User'}</Text>
@@ -63,10 +159,43 @@ export default function DashboardScreen({ navigation }) {
           >
             <Ionicons name="person" size={20} color={theme.colors.primaryLight} />
           </TouchableOpacity>
-        </View>
+        </Animated.View>
+
+        {/* Infinite Scrolling Ticker Marquee */}
+        <Animated.View style={[styles.tickerContainer, { opacity: fadeGreeting }]}>
+          <Animated.View style={[styles.tickerRow, { transform: [{ translateX: tickerX }] }]}>
+            <Text 
+              style={styles.tickerText} 
+              numberOfLines={1} 
+              ellipsizeMode="clip"
+              onLayout={(e) => {
+                const { width: measuredWidth } = e.nativeEvent.layout;
+                if (measuredWidth > 0 && tickerWidth === 0) {
+                  setTickerWidth(measuredWidth);
+                }
+              }}
+            >
+              SPENDLY • SECURE • SIMPLE • SMART • TRACK • ANALYZE • SAVE • 
+            </Text>
+            {/* Render secondary duplicate to fill in the blank gap during scroll */}
+            <Text style={styles.tickerText} numberOfLines={1} ellipsizeMode="clip">
+              SPENDLY • SECURE • SIMPLE • SMART • TRACK • ANALYZE • SAVE • 
+            </Text>
+            {/* Render tertiary duplicate to cover extra wide screen layouts */}
+            <Text style={styles.tickerText} numberOfLines={1} ellipsizeMode="clip">
+              SPENDLY • SECURE • SIMPLE • SMART • TRACK • ANALYZE • SAVE • 
+            </Text>
+          </Animated.View>
+        </Animated.View>
 
         {/* Balance Card / Summary Widgets */}
-        <View style={styles.summaryCard}>
+        <Animated.View style={[
+          styles.summaryCard, 
+          { 
+            opacity: fadeCard, 
+            transform: [{ translateY: yCard }] 
+          }
+        ]}>
           <View style={styles.cardHeader}>
             <Text style={styles.cardHeaderTitle}>Total Spending</Text>
             <View style={styles.chip}>
@@ -87,15 +216,27 @@ export default function DashboardScreen({ navigation }) {
               <Text style={styles.footerValue}>{expenses.length}</Text>
             </View>
           </View>
-        </View>
+        </Animated.View>
 
         {/* Spending Category Breakdown */}
-        <View style={styles.sectionContainer}>
+        <Animated.View style={[
+          styles.sectionContainer, 
+          { 
+            opacity: fadeChart, 
+            transform: [{ translateY: yChart }] 
+          }
+        ]}>
           <SummaryChart expenses={expenses} />
-        </View>
+        </Animated.View>
 
         {/* Recent Transactions Section */}
-        <View style={styles.sectionContainer}>
+        <Animated.View style={[
+          styles.sectionContainer, 
+          { 
+            opacity: fadeList, 
+            transform: [{ translateY: yList }] 
+          }
+        ]}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>Recent Transactions</Text>
             {expenses.length > 5 && (
@@ -125,18 +266,25 @@ export default function DashboardScreen({ navigation }) {
               />
             ))
           )}
-        </View>
+        </Animated.View>
       </ScrollView>
 
-      {/* Floating Action Button for Add Expense */}
-      <TouchableOpacity 
-        style={styles.fab}
-        onPress={() => navigation.navigate('AddExpense')}
-        activeOpacity={0.8}
-      >
-        <Ionicons name="add" size={32} color={theme.colors.text} />
-      </TouchableOpacity>
-    </SafeAreaView>
+      {/* Floating Action Button for Add Expense (wrapped in Animated.View) */}
+      <Animated.View style={[
+        styles.fabContainer, 
+        { 
+          transform: [{ scale: Animated.multiply(scaleFab, pulseAnim) }] 
+        }
+      ]}>
+        <TouchableOpacity 
+          style={styles.fab}
+          onPress={() => navigation.navigate('AddExpense')}
+          activeOpacity={0.8}
+        >
+          <Ionicons name="add" size={32} color={theme.colors.text} />
+        </TouchableOpacity>
+      </Animated.View>
+      </View>
   );
 }
 
@@ -160,6 +308,29 @@ const styles = StyleSheet.create({
     fontSize: theme.typography.sm,
     color: theme.colors.textSecondary,
     fontWeight: '500',
+  },
+  tickerContainer: {
+    backgroundColor: 'rgba(0, 163, 154, 0.04)',
+    borderTopWidth: 1,
+    borderBottomWidth: 1,
+    borderColor: 'rgba(0, 163, 154, 0.12)',
+    paddingVertical: 6,
+    marginBottom: theme.spacing.lg,
+    overflow: 'hidden',
+    borderRadius: theme.borderRadius.sm,
+    width: '100%',
+  },
+  tickerRow: {
+    flexDirection: 'row',
+    alignSelf: 'flex-start',
+  },
+  tickerText: {
+    color: theme.colors.primaryLight,
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 2,
+    textTransform: 'uppercase',
+    paddingRight: 24, // spacing gaps between repetitions
   },
   userName: {
     fontSize: theme.typography.xl,
@@ -284,10 +455,13 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     fontSize: theme.typography.sm,
   },
-  fab: {
+  fabContainer: {
     position: 'absolute',
     bottom: theme.spacing.lg,
     right: theme.spacing.lg,
+    zIndex: 99,
+  },
+  fab: {
     width: 56,
     height: 56,
     borderRadius: 28,

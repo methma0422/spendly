@@ -19,14 +19,18 @@ const CATEGORIES = ['Food', 'Transport', 'Shopping', 'Bills', 'Health', 'Educati
 
 export default function EditExpenseScreen({ route, navigation }) {
   const { expenseId } = route.params;
-  const { expenses, updateExpenseItem } = useAuth();
+  const { expenses, updateExpenseItem, showDialog } = useAuth();
   
   const expense = expenses.find(e => e.id === expenseId);
 
   // If expense is not found, redirect back
   useEffect(() => {
     if (!expense) {
-      Alert.alert('Error', 'Transaction not found.');
+      showDialog({
+        title: 'Error',
+        message: 'Transaction not found.',
+        type: 'error',
+      });
       navigation.goBack();
     }
   }, [expense]);
@@ -103,11 +107,20 @@ export default function EditExpenseScreen({ route, navigation }) {
         description
       });
       
-      Alert.alert('Success', 'Expense updated successfully!', [
-        { text: 'OK', onPress: () => navigation.goBack() }
-      ]);
+      showDialog({
+        title: 'Success',
+        message: 'Expense updated successfully!',
+        type: 'success',
+        buttons: [
+          { text: 'OK', onPress: () => navigation.goBack() }
+        ]
+      });
     } catch (e) {
-      Alert.alert('Error', 'Failed to update expense. Please try again.');
+      showDialog({
+        title: 'Error',
+        message: 'Failed to update expense. Please try again.',
+        type: 'error',
+      });
     } finally {
       setLoading(false);
     }

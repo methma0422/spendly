@@ -261,11 +261,34 @@ export const storage = {
       
       const expenses = await storage.getExpenses(lowerEmail);
       const filteredExpenses = expenses.filter(e => e.id !== id);
-      
       await AsyncStorage.setItem(key, JSON.stringify(filteredExpenses));
       return true;
     } catch (error) {
       throw new Error('Failed to delete expense');
+    }
+  },
+
+  /**
+   * Set onboarding seen status
+   */
+  setHasSeenOnboarding: async (seen) => {
+    try {
+      await AsyncStorage.setItem('@spendly:has_seen_onboarding', JSON.stringify(seen));
+    } catch (e) {
+      console.error('Error setting onboarding seen status:', e);
+    }
+  },
+
+  /**
+   * Get onboarding seen status
+   */
+  getHasSeenOnboarding: async () => {
+    try {
+      const seenJson = await AsyncStorage.getItem('@spendly:has_seen_onboarding');
+      return seenJson ? JSON.parse(seenJson) : false;
+    } catch (e) {
+      console.error('Error getting onboarding seen status:', e);
+      return false;
     }
   }
 };

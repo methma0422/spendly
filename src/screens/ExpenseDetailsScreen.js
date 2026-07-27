@@ -7,7 +7,7 @@ import CustomButton from '../components/CustomButton';
 
 export default function ExpenseDetailsScreen({ route, navigation }) {
   const { expenseId } = route.params;
-  const { expenses, deleteExpenseItem } = useAuth();
+  const { expenses, deleteExpenseItem, showDialog } = useAuth();
   
   const expense = expenses.find(e => e.id === expenseId);
 
@@ -45,10 +45,11 @@ export default function ExpenseDetailsScreen({ route, navigation }) {
   };
 
   const handleDelete = () => {
-    Alert.alert(
-      'Delete Expense',
-      'Are you sure you want to permanently delete this expense transaction?',
-      [
+    showDialog({
+      title: 'Delete Expense',
+      message: 'Are you sure you want to permanently delete this expense transaction?',
+      type: 'error',
+      buttons: [
         { text: 'Cancel', style: 'cancel' },
         { 
           text: 'Delete', 
@@ -58,12 +59,16 @@ export default function ExpenseDetailsScreen({ route, navigation }) {
               await deleteExpenseItem(expenseId);
               navigation.goBack();
             } catch (e) {
-              Alert.alert('Error', 'Failed to delete expense.');
+              showDialog({
+                title: 'Error',
+                message: 'Failed to delete expense.',
+                type: 'error',
+              });
             }
           }
         }
       ]
-    );
+    });
   };
 
   return (

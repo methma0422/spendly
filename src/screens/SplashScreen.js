@@ -3,9 +3,12 @@ import { View, Text, StyleSheet, Animated, StatusBar } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { theme } from '../utils/theme';
 
+import { useAuth } from '../context/AuthContext';
+
 export default function SplashScreen({ navigation }) {
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const scaleAnim = useRef(new Animated.Value(0.5)).current;
+  const { hasSeenOnboarding, setHasShownSplash } = useAuth();
 
   useEffect(() => {
     // Elegant entry animation
@@ -23,13 +26,14 @@ export default function SplashScreen({ navigation }) {
       }),
     ]).start();
 
-    // Navigate to Login after 2.5 seconds
+    // Navigate to Onboarding or Login after 2.5 seconds
     const timer = setTimeout(() => {
-      navigation.replace('Login');
+      setHasShownSplash(true);
+      navigation.replace(hasSeenOnboarding ? 'Login' : 'Onboarding');
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, []);
+  }, [hasSeenOnboarding]);
 
   return (
     <View style={styles.container}>

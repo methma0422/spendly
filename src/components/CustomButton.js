@@ -1,5 +1,11 @@
-import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useRef } from 'react';
+import { 
+  TouchableOpacity, 
+  Text, 
+  StyleSheet, 
+  ActivityIndicator, 
+  Animated 
+} from 'react-native';
 import { theme } from '../utils/theme';
 
 export default function CustomButton({ 
@@ -12,6 +18,28 @@ export default function CustomButton({
   style, 
   textStyle 
 }) {
+  const scaleValue = useRef(new Animated.Value(1)).current;
+
+  const handlePressIn = () => {
+    if (disabled || loading) return;
+    Animated.spring(scaleValue, {
+      toValue: 0.96,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 50,
+    }).start();
+  };
+
+  const handlePressOut = () => {
+    if (disabled || loading) return;
+    Animated.spring(scaleValue, {
+      toValue: 1,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 50,
+    }).start();
+  };
+
   const isPrimary = variant === 'primary';
   const isSecondary = variant === 'secondary';
   const isDanger = variant === 'danger';
@@ -52,23 +80,27 @@ export default function CustomButton({
   };
 
   return (
-    <TouchableOpacity
-      onPress={onPress}
-      disabled={disabled || loading}
-      activeOpacity={0.7}
-      style={[styles.buttonBase, getButtonStyles(), style]}
-    >
-      {loading ? (
-        <ActivityIndicator 
-          size="small" 
-          color={outline ? (isSecondary ? theme.colors.secondary : theme.colors.primary) : theme.colors.text} 
-        />
-      ) : (
-        <Text style={[styles.textBase, { color: getTextColor() }, textStyle]}>
-          {title}
-        </Text>
-      )}
-    </TouchableOpacity>
+    <Animated.View style={{ transform: [{ scale: scaleValue }], width: style?.width || '100%' }}>
+      <TouchableOpacity
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={disabled || loading}
+        activeOpacity={0.8}
+        style={[styles.buttonBase, getButtonStyles(), style]}
+      >
+        {loading ? (
+          <ActivityIndicator 
+            size="small" 
+            color={outline ? (isSecondary ? theme.colors.secondary : theme.colors.primary) : theme.colors.text} 
+          />
+        ) : (
+          <Text style={[styles.textBase, { color: getTextColor() }, textStyle]}>
+            {title}
+          </Text>
+        )}
+      </TouchableOpacity>
+    </Animated.View>
   );
 }
 
@@ -80,6 +112,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     ...theme.shadows.sm,
+    width: '100%',
   },
   primaryButton: {
     backgroundColor: theme.colors.primary,

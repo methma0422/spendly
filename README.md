@@ -1,120 +1,110 @@
-# Spendly - Smart Expense Tracker
+# Spendly - Expense Tracker Mobile App
 
-Spendly is a modern, high-fidelity daily expense tracker mobile application built using **React Native (Expo)** with **JavaScript (JSX)**, **React Navigation**, and **AsyncStorage**.
+Spendly is a high-fidelity, feature-rich personal finance tracking application built using **React Native (Expo)**. The app features a premium dark-mode theme, incorporating glassmorphism cards, glowing neon elements, custom animations, and a seamless, multi-user storage layout.
 
-The application features a premium dark-mode theme inspired by modern fintech layouts, featuring thin glassmorphism card components, neon cyan highlights, custom-tinted category badges, and dynamic forms with robust error validations.
+---
+
+## Technical Specifications
+
+| Technology | Implementation | Description |
+| :--- | :--- | :--- |
+| **Core Framework** | React Native (Expo SDK 54) | Built with JavaScript (JSX) for cross-platform stability |
+| **Navigation** | React Navigation (v6) | Native Stack + Bottom Tab routing with dynamic Safe Area spacing |
+| **Local Storage** | AsyncStorage | Custom multi-user database driver with isolated email-scoped keys |
+| **Icons** | `@expo/vector-icons` | Custom-colored Ionicons integrated inside category badges |
+| **Safe Areas** | `react-native-safe-area-context` | Dynamic bottom and top status bar inset positioning |
 
 ---
 
 ## Key Features
 
-1. **Authentication Module**: 
-   * Animated splash landing logo screen.
-   * Sign-in and account registration screens with real-time format validation checks.
-   * Hardware-aware session checking to preserve active logins.
-2. **Dashboard Module**:
-   * Dynamic calculations for **Total Spending** and **Current Month Spending** (filtered automatically).
-   * Visual category spending breakdown via custom progress bar widgets.
-   * Feed displaying the 5 most recent transactions.
-3. **Expense Management (CRUD)**:
-   * **Create**: Quick add form using a responsive 8-category selector grid.
-   * **Read**: Scrollable history with title searching and filters.
-   * **Update & Delete**: Pre-populated editing form and a details sheet with native double-check confirm prompts.
-4. **Interactive Filters**:
-   * Instant search matching query strings in expense titles/notes.
-   * Horizontal slider chips filtering items by category.
-   * Sort control pop-up ordering transactions by Date (Newest/Oldest) or Amount (High-to-Low/Low-to-High).
-5. **Profile Module**:
-   * Displays name, email, avatar badge, and account totals.
-   * Collapsible editing cards to update details or modify passwords.
+### 1. Onboarding & App Landing
+* **Interactive Intro Screen**: Styled with a floating, circular categories illustration representing expense buckets.
+* **First-Launch Hook**: Checks a local flag (`@spendly:has_seen_onboarding`) on start. If incomplete, it shows the onboarding screen first; once completed, it is bypassed forever on subsequent launches.
+
+### 2. Multi-User Authentication
+* **Animated Splash Screen**: Displays a loading brand icon and name with scale springs.
+* **Breathing Glow Backdrop**: Login and Register screens feature background neon orbs that pulse slowly.
+* **Interactive Password Checklist**: Validates inputs in real-time, lighting up requirements (length, uppercase, special character) in emerald green as rules are met.
+
+### 3. Home Dashboard (Home)
+* **Custom Marquee Ticker**: An infinite horizontal rolling banner scrolling text (`SPENDLY • SECURE • SIMPLE • SMART...`) at a consistent, glitch-free speed.
+* **Total Spending Widget**: Displays spring-animated balance cards formatted in **Sri Lankan Rupees (LKR / Rs.)**.
+* **Category Progress Charts**: Custom visual indicator bars that expand smoothly on mount.
+* **Floating Action Button**: A bouncing FAB that pops on load and guides the user to add transactions.
+
+### 4. Expense Management & Filtering (CRUD)
+* **Transaction Feed**: Shows recent transactions with category-colored left accent strips and outline glows.
+* **Category Selector**: A responsive 8-category icon selector grid.
+* **Search & Filters**: Title searching, category filter pills, and sorting overlays (by newest/oldest date or amount).
+* **Themed Custom Dialogs**: Standard native alert popups are replaced with custom-designed dark dialog cards featuring glowing neon frames and animated scale transitions.
 
 ---
 
-## Technical Architecture & Folder Structure
-
-The source files are structured inside the `src/` directory to separate concerns:
+## Project Structure & Navigation Map
 
 ```text
 spendly/
-├── App.js                     # Root wrapper (AuthProvider & NavigationContainer)
-├── app.json                   # Expo SDK project metadata
-├── package.json               # Package dependencies & scripts
-└── src/
-    ├── components/            # Stateless, reusable interface elements
-    │   ├── CategoryIcon.js    # Colored vector icon badge generator
-    │   ├── CustomButton.js    # Multi-variant action button (with loaders)
-    │   ├── CustomInput.js     # Text fields with focus colors and secure eye toggles
-    │   ├── ExpenseCard.js     # Glassmorphism container for transaction logs
-    │   └── SummaryChart.js    # Custom progress indicator breakdown card
-    ├── context/               # Global state providers
-    │   └── AuthContext.js     # Manages active sessions and reactive expense caches
-    ├── navigation/            # Router configurations
-    │   └── AppNavigator.js    # Stack & Tab routes (integrates Safe Area measuring)
-    ├── screens/               # Screen modules (9 required screens)
-    │   ├── SplashScreen.js, LoginScreen.js, RegisterScreen.js
-    │   ├── DashboardScreen.js, ExpenseListScreen.js, ExpenseDetailsScreen.js
-    │   ├── AddExpenseScreen.js, EditExpenseScreen.js, ProfileScreen.js
-    └── utils/                 # Utilities and helper libraries
-        ├── storage.js         # AsyncStorage multi-user database driver
-        └── theme.js           # Visual design system colors, spacing, and typography
+├── App.js                     # Providers wrapper (AuthProvider & CustomDialog overlay)
+├── assets/                    # Graphic assets and app icons
+├── src/
+│   ├── components/            # Reusable UI components
+│   │   ├── CategoryIcon.js    # Colored vector icon badge generator
+│   │   ├── CustomButton.js    # Spring-scalable action buttons
+│   │   ├── CustomInput.js     # Dark input fields with secure eye toggles
+│   │   ├── CustomDialog.js    # Themed success/error/confirm popups
+│   │   ├── ExpenseCard.js     # Glassmorphic transaction feed items
+│   │   └── SummaryChart.js    # Custom progress indicator bars
+│   ├── context/               # Global state providers
+│   │   └── AuthContext.js     # Sessions, cache, and global dialog triggers
+│   ├── navigation/            # Router configurations
+│   │   └── AppNavigator.js    # Tab and Stack Navigator setups
+│   ├── screens/               # Screen modules (10 total screens)
+│   │   ├── SplashScreen.js, OnboardingScreen.js, LoginScreen.js, RegisterScreen.js
+│   │   ├── DashboardScreen.js, ExpenseListScreen.js, ExpenseDetailsScreen.js
+│   │   ├── AddExpenseScreen.js, EditExpenseScreen.js, ProfileScreen.js
+│   └── utils/                 # Design tokens and storage drivers
+│       ├── storage.js         # AsyncStorage multi-user database driver
+│       └── theme.js           # Visual design guidelines (colors, spaces)
 ```
 
 ---
 
 ## Data Management & Multi-User Isolation
 
-To support multiple registered accounts on the same local device, Spendly isolates expense data using **email-scoped storage keys**:
-* **Users Table**: Saved under key `@spendly:users` (array of user profiles).
-* **Active Session**: Saved under key `@spendly:current_user` to enable automatic logins when opening the app.
-* **Isolated Transactions**: Saved under key `@spendly:expenses_<email>` (e.g. `@spendly:expenses_john@mail.com`). This ensures that User A never sees User B's transaction logs. If a user edits their email address inside the profile settings, the storage driver automatically migrates their database key to the new email address.
+To support multiple user profiles on the same local device without data leakage, Spendly implements **email-scoped storage keys**:
+* **User Accounts**: Saved under a global `@spendly:users` profile array.
+* **Active Session**: Saved under `@spendly:current_user` to preserve sessions across launches.
+* **Isolated Transactions**: Expense records are saved under key `@spendly:expenses_<email_address>`.
+* **Automatic Migration**: If a user updates their email inside their profile settings, the storage driver automatically migrates their transaction database keys to the new email address.
 
 ---
 
-## Input Validations & Security Policies
-
-* **Email Validations**: Uses standard regex matching to check structure accuracy before submission:
-  ```javascript
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  ```
-* **Password Validation Rules**:
-  * Enforces a minimum length of **6 characters**.
-  * Requires at least one **Uppercase letter** (`/[A-Z]/`).
-  * Requires at least one **Special character** (`/[^A-Za-z0-9]/`).
-  * Includes a real-time reactive checklist indicator below the password input.
-* **Currency Formatting**: Localized to **Sri Lankan Rupees (LKR / Rs.)** using `en-LK` formatters for a localized user experience.
-* **Amount Rules**: Blocks submission if inputs are non-numeric or less than or equal to `0`.
-* **Date Rules**: Enforces standard `YYYY-MM-DD` formatting and verifies date calendar validity.
-
----
-
-## How to Get Started
+## Getting Started Locally
 
 ### 1. Install Dependencies
-Navigate into your project folder and install the packages:
+In your terminal, navigate into the project directory and run:
 ```bash
 npm install
 ```
 
-### 2. Launch Metro Bundler
-Start the development server with the cache cleared:
+### 2. Launch the Development Server
+Start the Metro compiler with cache clearing enabled:
 ```bash
-npm run android    # Run on a connected Android device/emulator
-# or
 npx expo start --lan --clear
 ```
 
 ### 3. Open on your Device
-Open the **Expo Go** application on your mobile phone and scan the terminal QR code, or enter your computer's local link manually:
-```text
-exp://<your-computer-ip>:8081
-```
+Download the **Expo Go** app on your phone, then:
+* **Android**: Scan the terminal QR code using the scanner inside the Expo Go app.
+* **iOS**: Scan the terminal QR code using the system Camera app.
+* **Manual Input**: Connect manually by typing `exp://<your-computer-ip>:8081` in Expo Go.
 
 ---
 
-## Production Considerations & Future Scalability
-
-While AsyncStorage meets the prototype requirements, a production build would benefit from the following architectural enhancements:
-
-1. **Hardware-Level Encryption**: Sensitive user passwords should be stored in **`expo-secure-store`** instead of AsyncStorage plaintext files, protecting them at the device's hardware keychain level (iOS Keychain / Android Keystore).
-2. **Local Relational Databases**: Reading, parsing, and writing a single massive stringified JSON array on the main thread degrades performance with high transaction counts. Migrating transaction files to a database like **`expo-sqlite`** or **`Realm`** enables structured indexes and faster filtered queries.
-3. **Cloud Synchronization**: Connecting the local driver to a cloud service (e.g. Supabase, Firebase, or a dedicated REST API) keeps user files backed up and synced across multiple devices.
+## Submission Deliverables Checklist
+1. **React Native Source Code**: Included in this repository.
+2. **README Documentation**: (This file).
+3. **Application Screenshots**: Saved in the submission folder.
+4. **Short Demo Video**: Screen recording showing onboarding, signup checks, adding transactions, and custom sign-out sheets.
+5. **Android APK Binary**: Configured inside `eas.json` for cloud builds.
